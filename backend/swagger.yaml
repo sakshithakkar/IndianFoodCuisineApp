@@ -6,10 +6,44 @@ info:
 paths:
   /dishes:
     get:
-      summary: Get all dishes
+      summary: Get all dishes with optional filters
+      parameters:
+        - in: query
+          name: diet
+          schema:
+            type: string
+        - in: query
+          name: flavor
+          schema:
+            type: string
+        - in: query
+          name: state
+          schema:
+            type: string
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [name, prep_time, cook_time]
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum: [asc, desc]
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
       responses:
         '200':
           description: List of dishes
+        '500':
+          description: Internal Server Error
+
   /dishes/{id}:
     get:
       summary: Get dish by ID
@@ -22,6 +56,11 @@ paths:
       responses:
         '200':
           description: Dish object
+        '404':
+          description: Dish not found
+        '500':
+          description: Internal Server Error
+
   /suggest:
     post:
       summary: Suggest dishes by ingredients
@@ -38,7 +77,38 @@ paths:
                     type: string
       responses:
         '200':
-          description: List of suggested dishes
+          description: List of matching dishes
+        '404':
+          description: No matching dishes found
+        '500':
+          description: Internal Server Error
+
+  /ingredients:
+    get:
+      summary: Get all unique ingredients
+      responses:
+        '200':
+          description: List of ingredients
+        '500':
+          description: Internal Server Error
+
+  /search:
+    get:
+      summary: Search dishes by keyword
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of matching dishes
+        '404':
+          description: No dishes matched your search
+        '500':
+          description: Internal Server Error
+
   /login:
     post:
       summary: User login
@@ -58,7 +128,12 @@ paths:
                   format: password
       responses:
         '200':
-          description: JWT token
+          description: JWT token and user object
+        '401':
+          description: Invalid email or password
+        '500':
+          description: Internal Server Error
+
   /register:
     post:
       summary: User registration
@@ -79,6 +154,11 @@ paths:
       responses:
         '201':
           description: Registered successfully
+        '409':
+          description: User already exists
+        '500':
+          description: Internal Server Error
+
 components:
   securitySchemes:
     bearerAuth:

@@ -1,7 +1,7 @@
 const db = require('../db');
+const { StatusCodes } = require('http-status-codes');
 
-
-// Get all dishes
+// Get all dishes with optional filters and pagination
 exports.getAllDishes = async (req, res) => {
   const { diet, flavor, state, sort = 'name', order = 'asc' } = req.query;
   const filters = [];
@@ -25,12 +25,12 @@ exports.getAllDishes = async (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
   const offset = (page - 1) * limit;
 
-  // Valid sort columns
+  // Allow only specific columns for sorting
   const sortable = ['name', 'prep_time', 'cook_time'];
   const sortBy = sortable.includes(sort) ? sort : 'name';
   const sortOrder = order === 'desc' ? 'DESC' : 'ASC';
 
-  const whereClause = filters.length ? 'WHERE ' + filters.join(' AND ') : '';
+  const whereClause = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
   const query = `SELECT * FROM dishes ${whereClause} ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
   const countQuery = `SELECT COUNT(*) as total FROM dishes ${whereClause}`;
 
@@ -38,7 +38,7 @@ exports.getAllDishes = async (req, res) => {
     const [[{ total }]] = await db.query(countQuery, values);
     const [rows] = await db.query(query, [...values, limit, offset]);
 
-    res.json({
+    res.status(StatusCodes.OK).json({
       data: rows,
       pagination: {
         total,
@@ -48,74 +48,90 @@ exports.getAllDishes = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: err.message });
   }
 };
 
-
-
 // Get dish by ID
 exports.getDishById = async (req, res) => {
-    const id = req.params.id;
-    try {
-        const [rows] = await db.query('SELECT * FROM dishes WHERE id = ?', [id]);
-        // res.json(rows[0] || {});
-        res.json({
-            data: rows
-        })
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+  const id = req.params.id;
+
+  try {
+    const [rows] = await db.query('SELECT * FROM dishes WHERE id = ?', [id]);
+
+    if (rows.length === 0) {
+      return res.status(StatusCodes.NOT_FOUND).json({ message: 'Dish not found' });
     }
+
+    res.status(StatusCodes.OK).json({ data: rows[0] });
+  } catch (err) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: err.message });
+  }
 };
 
 // Suggest dishes based on ingredients
 exports.suggestDishes = async (req, res) => {
-    const inputIngredients = req.body.ingredients.map(i => i.toLowerCase());
+  const inputIngredients = req.body.ingredients.map(i => i.toLowerCase());
 
-    try {
-        const conditions = inputIngredients.map(() => `ingredients LIKE ?`).join(' OR ');
-        const values = inputIngredients.map(i => `%${i}%`);
+  try {
+    const conditions = inputIngredients.map(() => `ingredients LIKE ?`).join(' OR ');
+    const values = inputIngredients.map(i => `%${i}%`);
+    const query = `SELECT * FROM dishes WHERE ${conditions}`;
 
-        const query = `SELECT * FROM dishes WHERE ${conditions}`;
-        const [rows] = await db.query(query, values);
+    const [rows] = await db.query(query, values);
 
-        const matched = rows.filter(dish => {
-            const dishIngredients = dish.ingredients.toLowerCase().split(',').map(i => i.trim());
-            return dishIngredients.every(i => inputIngredients.map(j => j.toLowerCase()).includes(i));
-        });
+    const matched = rows.filter(dish => {
+      const dishIngredients = dish.ingredients
+        .toLowerCase()
+        .split(',')
+        .map(i => i.trim());
 
-        res.json(matched);
+      return dishIngredients.every(i =>
+        inputIngredients.includes(i)
+      );
+    });
 
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    if (matched.length === 0) {
+      return res.status(StatusCodes.NOT_FOUND).json({ message: 'No matching dishes found' });
     }
+
+    res.status(StatusCodes.OK).json(matched);
+  } catch (err) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: err.message });
+  }
 };
 
+// Get all unique ingredients
 exports.getAllIngredients = async (req, res) => {
   try {
     const [rows] = await db.query('SELECT ingredients FROM dishes');
 
     const allIngredients = rows
-      .flatMap(row => row.ingredients.split(',').map(i => i.trim().toLowerCase()))
-      .filter(i => i); // remove empty
+      .flatMap(row =>
+        row.ingredients
+          .split(',')
+          .map(i => i.trim().toLowerCase())
+      )
+      .filter(Boolean); // remove empty strings
 
     const uniqueIngredients = [...new Set(allIngredients)].sort();
 
-    res.json(uniqueIngredients);
+    res.status(StatusCodes.OK).json(uniqueIngredients);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: err.message });
   }
 };
 
+// Search dishes by name, ingredients, state, or region
 exports.searchDishes = async (req, res) => {
   const query = (req.query.q || '').toLowerCase().trim();
-  if (!query) return res.json([]);
+  if (!query) return res.status(StatusCodes.OK).json([]);
 
   try {
     const sql = `
       SELECT id, name
       FROM dishes
-      WHERE LOWER(name) LIKE ? 
+      WHERE LOWER(name) LIKE ?
          OR LOWER(ingredients) LIKE ?
          OR LOWER(state) LIKE ?
          OR LOWER(region) LIKE ?
@@ -125,10 +141,13 @@ exports.searchDishes = async (req, res) => {
     const likeQuery = `%${query}%`;
     const [rows] = await db.execute(sql, [likeQuery, likeQuery, likeQuery, likeQuery]);
 
-    res.json(rows);
-  } catch (err) {
-    console.error('Search error:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-}
+    if (rows.length === 0) {
+      return res.status(StatusCodes.NOT_FOUND).json({ message: 'No dishes matched your search' });
+    }
 
+
+    res.status(StatusCodes.OK).json(rows);
+  } catch (err) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
+  }
+};
