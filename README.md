@@ -1,4 +1,4 @@
-# 🇮🇳 Indian Dish Finder 🍛
+# Indian Dish Finder 🍛
 
 A full-stack web application to browse, search, and discover Indian dishes. Users can filter dishes, get suggestions based on available ingredients, and explore dish details.
 
@@ -57,7 +57,6 @@ INDIANFOODCUISINEAPP/
 │   └── package.json
 │
 ├── README.md
-├── IndianFoodCuisineApp.zip
 └── .gitignore
 ```
 
@@ -100,6 +99,7 @@ cd frontend
 npm install
 npm run dev
 ```
+App will run at: http://localhost:5173
 
 ---
 
@@ -112,7 +112,6 @@ Visit: http://localhost:3001/api-docs
 - Node.js
 - MySQL
 
-App will run at: http://localhost:5173
 
 ### 🧠 Future Improvements
 Image upload for dishes
