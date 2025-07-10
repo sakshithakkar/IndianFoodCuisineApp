@@ -32,31 +32,35 @@ Built using:
 ---
 
 ## 📁 Project Structure
+```
 INDIANFOODCUISINEAPP/
 ├── backend/
-│ ├── controllers/
-│ ├── middlewares/
-│ ├── routes/
-│ ├── app.js
-│ ├── db.js
-│ ├── swagger.yaml
-│ └── .env
+│   ├── controllers/
+│   ├── middlewares/
+│   ├── routes/
+│   ├── app.js
+│   ├── db.js
+│   ├── swagger.yaml
+│   └── .env
 │
 ├── frontend/
-│ ├── public/
-│ ├── src/
-│ │ ├── components/
-│ │ ├── pages/
-│ │ ├── services/
-│ │ ├── hooks/
-│ │ └── App.jsx
-│ ├── .env
-│ ├── index.html
-│ ├── vite.config.js
-│ └── package.json
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── hooks/
+│   │   └── App.jsx
+│   ├── .env
+│   ├── index.html
+│   ├── vite.config.js
+│   └── package.json
 │
 ├── README.md
+├── IndianFoodCuisineApp.zip
 └── .gitignore
+```
+
 
 ---
 
