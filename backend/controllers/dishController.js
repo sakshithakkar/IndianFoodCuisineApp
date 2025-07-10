@@ -148,6 +148,48 @@ exports.searchDishes = async (req, res) => {
 
     res.status(StatusCodes.OK).json(rows);
   } catch (err) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: err.message });
   }
 };
+
+exports.addDish = async (req, res) => {
+  try {
+    const {
+      name, ingredients, diet, prep_time, cook_time,
+      flavor_profile, course, state, region
+    } = req.body.dishData;
+
+    const userId = req.user.id;
+
+    const [result] = await db.query(
+      `INSERT INTO dishes (name, ingredients, diet, prep_time, cook_time,
+        flavor_profile, course, state, region, user_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [name, ingredients, diet, prep_time, cook_time, flavor_profile, course, state, region, userId]
+    );
+    if (result.insertId)
+      res.status(StatusCodes.CREATED).json({ message: 'Dish added', dishId: result.insertId });
+    else
+      return res.status(StatusCodes.CONFLICT).json({ message: 'Try Again Later' });
+  } catch (err) {
+    console.error('Error adding dish:', err);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: err.message });
+  }
+};
+
+// Get dishes created by the logged-in user
+exports.getDishesByUserId = async (req, res) => {
+  const userId = req.user.id; // from JWT auth middleware
+
+  try {
+    const [rows] = await db.query(
+      'SELECT * FROM dishes WHERE user_id = ? ORDER BY id DESC',
+      [userId]
+    );
+
+    res.status(StatusCodes.OK).json(rows);
+  } catch (err) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: err.message });
+  }
+};
+

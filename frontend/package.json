@@ -1,7 +1,7 @@
 {
   "name": "frontend",
-  "version": "1.0.4",
-  "versioncomment": "converted dropdown to combobox",
+  "version": "1.0.5",
+  "versioncomment": "user specific functionality added",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

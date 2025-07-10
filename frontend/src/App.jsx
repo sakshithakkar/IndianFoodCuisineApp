@@ -7,6 +7,7 @@ import Login from './pages/Login.jsx';
 import AddDish from './pages/AddDish.jsx';
 import PrivateRoute from './PrivateRoute.jsx';
 import Register from './pages/Register.jsx';
+import MyDishes from './pages/MyDishes.jsx';
 import { loadTheme } from '@fluentui/react';
 import { initializeIcons } from '@fluentui/react';
 
@@ -38,6 +39,11 @@ function App() {
         <Route path="/add-dish" element={
           <PrivateRoute>
             <AddDish />
+          </PrivateRoute>
+        } />
+        <Route path="/my-dishes" element={
+          <PrivateRoute>
+            <MyDishes />
           </PrivateRoute>
         } />
       </Routes>

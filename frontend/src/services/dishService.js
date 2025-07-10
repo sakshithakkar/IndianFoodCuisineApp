@@ -12,3 +12,11 @@ export const getDishById = (id) => {
 export const suggestDishes = (ingredients) => {
   return axiosInstance.post('/suggest', { ingredients });
 };
+
+export const addDish = (dishData) => {
+  return axiosInstance.post('/addDish', { dishData });
+};
+
+export const getDishByUserId = () => {
+  return axiosInstance.get(`/my-dishes`);
+};

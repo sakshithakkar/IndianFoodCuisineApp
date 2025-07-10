@@ -159,6 +159,103 @@ paths:
         '500':
           description: Internal Server Error
 
+  /addDish:
+    post:
+      tags:
+        - User Specific
+      summary: Add a new dish (authenticated)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dishData:
+                  type: object
+                  required:
+                    - name
+                    - ingredients
+                    - diet
+                  properties:
+                    name:
+                      type: string
+                      example: Paneer Butter Masala
+                    ingredients:
+                      type: string
+                      example: Paneer, Tomato, Butter, Spices
+                    diet:
+                      type: string
+                      example: vegetarian
+                    prep_time:
+                      type: integer
+                      example: 15
+                    cook_time:
+                      type: integer
+                      example: 25
+                    flavor_profile:
+                      type: string
+                      example: Spicy
+                    course:
+                      type: string
+                      example: Main Course
+                    state:
+                      type: string
+                      example: Punjab
+                    region:
+                      type: string
+                      example: North
+      responses:
+        '201':
+          description: Dish added successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '409':
+          description: Conflict
+        '500':
+          description: Server error
+
+  /my-dishes:
+    get:
+      tags:
+        - User Specific
+      summary: Get dishes created by logged-in user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of user's dishes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: Modak
+                    ingredients:
+                      type: string
+                      example: Rice flour, coconut, jaggery
+                    diet:
+                      type: string
+                      example: vegetarian
+                    user_id:
+                      type: integer
+                      example: 3
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
 components:
   securitySchemes:
     bearerAuth:

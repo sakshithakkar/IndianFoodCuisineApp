@@ -3,6 +3,9 @@ import { Home24Regular, BowlChopsticks24Regular } from '@fluentui/react-icons';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Header from './Header';
+import { Add24Regular } from '@fluentui/react-icons';
+import { FoodToast24Regular } from '@fluentui/react-icons';
+
 
 const NavBar = () => {
   const navigate = useNavigate();
@@ -49,7 +52,7 @@ const NavBar = () => {
           styles={{
             root: {
               fontWeight: 600,
-              fontSize: 24,
+              fontSize: 18,
               color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
@@ -69,7 +72,7 @@ const NavBar = () => {
           styles={{
             root: {
               fontWeight: 600,
-              fontSize: 24,
+              fontSize: 18,
               color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
@@ -83,6 +86,51 @@ const NavBar = () => {
         >
           <BowlChopsticks24Regular /> Dish Suggester
         </Link>
+
+        {loggedIn && (
+          <>
+          <Link
+            onClick={() => navigate('/add-dish')}
+            styles={{
+              root: {
+                fontWeight: 600,
+                fontSize: 18,
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                textDecoration: 'none',
+                selectors: {
+                  ':hover': { textDecoration: 'underline', color: '#c7e0f4' },
+                },
+              },
+            }}
+          >
+            <Add24Regular /> Add Dish
+          </Link>
+
+          <Link
+            onClick={() => navigate('/my-dishes')}
+            styles={{
+              root: {
+                fontWeight: 600,
+                fontSize: 18,
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                textDecoration: 'none',
+                selectors: {
+                  ':hover': { textDecoration: 'underline', color: '#c7e0f4' },
+                },
+              },
+            }}
+          >
+             <FoodToast24Regular /> My Dishes
+          </Link>
+          </>
+        )}
+
       </Stack>
 
       {/* Center: Search Header */}

@@ -1,7 +1,7 @@
 {
   "name": "backend",
-  "version": "1.0.3",
-  "versioncomment": "handled edge cases and updated swagger doc",
+  "version": "1.0.4",
+  "versioncomment": "user specific functionality added",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
