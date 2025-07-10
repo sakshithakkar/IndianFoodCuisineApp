@@ -9,7 +9,7 @@ exports.login = async (req, res) => {
     const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
     const user = rows[0];
 
-    if (!user || !bcrypt.compare(password, user.password)) {
+    if (!user || !(bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
@@ -17,7 +17,7 @@ exports.login = async (req, res) => {
       expiresIn: '24h',
     });
 
-    res.json({ token });
+    res.json({ token, user: { email: user.email } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

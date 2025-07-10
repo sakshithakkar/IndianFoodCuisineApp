@@ -107,3 +107,28 @@ exports.getAllIngredients = async (req, res) => {
   }
 };
 
+exports.searchDishes = async (req, res) => {
+  const query = (req.query.q || '').toLowerCase().trim();
+  if (!query) return res.json([]);
+
+  try {
+    const sql = `
+      SELECT id, name
+      FROM dishes
+      WHERE LOWER(name) LIKE ? 
+         OR LOWER(ingredients) LIKE ?
+         OR LOWER(state) LIKE ?
+         OR LOWER(region) LIKE ?
+      LIMIT 10
+    `;
+
+    const likeQuery = `%${query}%`;
+    const [rows] = await db.execute(sql, [likeQuery, likeQuery, likeQuery, likeQuery]);
+
+    res.json(rows);
+  } catch (err) {
+    console.error('Search error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+

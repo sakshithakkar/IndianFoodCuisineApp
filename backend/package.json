@@ -1,7 +1,7 @@
 {
   "name": "backend",
-  "version": "1.0.1",
-  "versioncomment": "backend changes regarding filtering and sorting",
+  "version": "1.0.2",
+  "versioncomment": "added api to search dishes",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
