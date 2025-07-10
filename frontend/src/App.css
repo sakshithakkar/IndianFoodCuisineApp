@@ -1,1 +1,8 @@
+.fui-Combobox__listbox {
+  padding: 8px 0 !important; /* vertical spacing around the option list */
+  max-height: 300px;         /* prevents touching screen edges */
+  overflow-y: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
 

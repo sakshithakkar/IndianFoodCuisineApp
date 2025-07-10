@@ -1,15 +1,75 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     Stack,
-    Dropdown,
     PrimaryButton,
     DetailsList,
     Text,
-    ComboBox
 } from '@fluentui/react';
+import {
+    Combobox,
+    makeStyles,
+    Option,
+    tokens,
+    useId,
+} from "@fluentui/react-components";
+
+import { Dismiss12Regular } from "@fluentui/react-icons";
 import { Link } from 'react-router-dom';
 import { getAllIngredients } from '../services/ingredientService';
 import { suggestDishes } from '../services/dishService';
+
+const useStyles = makeStyles({
+    tagsList: {
+        listStyleType: "none",
+        marginBottom: '3px',
+        marginTop: 0,
+        paddingLeft: 0,
+        display: "flex",
+        flexWrap: "wrap",
+        gap: tokens.spacingHorizontalXXS,
+        borderRadius: '5px'
+    },
+    comboBox: {
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        padding: '2px',
+        backgroundColor: '#fff',
+    },
+    option: {
+        backgroundColor: '#f5f5f5',
+        color: '#000',
+        '&:hover': {
+            backgroundColor: '#e0e0e0',
+        },
+        '&[aria-selected="true"]': {
+            backgroundColor: '#cce5ff',
+        },
+    },
+    tagPill: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        backgroundColor: '#e0e0e0',
+        color: tokens.colorNeutralForeground2,
+        borderRadius: '20px',
+        padding: '4px 10px',
+        fontSize: '14px',
+        fontWeight: 500,
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
+        gap: '4px',
+        marginRight: '5px'
+    },
+    closeIcon: {
+        backgroundColor: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        color: tokens.colorNeutralForeground3,
+        ':hover': {
+            color: tokens.colorBrandForeground1,
+        },
+    },
+});
+
+
 
 const DishSuggester = () => {
     const [selectedIngredients, setSelectedIngredients] = useState(() => {
@@ -20,6 +80,33 @@ const DishSuggester = () => {
     const [allIngredients, setAllIngredients] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    const styles = useStyles();
+
+    const comboId = useId("combo-multi");
+    const selectedListId = `${comboId}-selection`;
+    const selectedListRef = useRef(null);
+    const comboboxInputRef = useRef(null);
+
+    const onSelect = (event, data) => {
+        setSelectedIngredients(data.selectedOptions);
+    };
+
+    const onTagClick = (option, index) => {
+        setSelectedIngredients(selectedIngredients.filter(o => o !== option));
+        const indexToFocus = index === 0 ? 1 : index - 1;
+        const optionToFocus = selectedListRef.current?.querySelector(
+            `#${comboId}-remove-${indexToFocus}`
+        );
+        if (optionToFocus) {
+            optionToFocus.focus();
+        } else {
+            comboboxInputRef.current?.focus();
+        }
+    };
+
+    const labelledBy =
+        selectedIngredients.length > 0 ? `${comboId} ${selectedListId}` : comboId;
 
     useEffect(() => {
         const fetchIngredients = async () => {
@@ -34,8 +121,6 @@ const DishSuggester = () => {
         fetchIngredients();
     }, []);
 
-    const ingredientOptions = allIngredients.map(ing => ({ key: ing, text: ing }));
-
     const fetchSuggestions = async () => {
         if (selectedIngredients.length === 0) return;
 
@@ -44,15 +129,14 @@ const DishSuggester = () => {
 
         try {
             const data = await suggestDishes(selectedIngredients);
-            if (data.length === 0) {
+            if (data.data.length === 0) {
                 setError('No dishes found.');
             } else {
-                setSuggestedDishes(data);
+                setSuggestedDishes(data.data);
             }
         } catch (err) {
             console.error(err);
             if (err.response?.status === 404) {
-                console.log(err.response?.status)
                 setError('No dishes found.');
             } else if (err.response?.status === 500) {
                 setError('Server error. Please try again later.');
@@ -119,61 +203,55 @@ const DishSuggester = () => {
                 },
             }}
         >
-            <Stack tokens={{ childrenGap: 4 }}>
-                <Text variant="mediumPlus" styles={{ root: { color: '#605e5c' } }}>
-                    Select ingredients you have and discover matching Indian dishes 🍛
+            <Stack tokens={{ childrenGap: 8 }}>
+                <Text variant="mediumPlus">
+                    Select ingredients you have and discover matching Indian dishes.
                 </Text>
             </Stack>
 
-            <Stack horizontal verticalAlign="end" tokens={{ childrenGap: 12 }}>
-                <Dropdown
-                    placeholder="Select ingredients"
-                    label="Available Ingredients"
-                    multiSelect
-                    options={ingredientOptions}
-                    selectedKeys={selectedIngredients}
-                    onChange={(_, option) => {
-                        if (option.selected) {
-                            setSelectedIngredients(prev => [...prev, option.key]);
-                        } else {
-                            setSelectedIngredients(prev => prev.filter(item => item !== option.key));
-                        }
-                    }}
-                    styles={{
-                        dropdown: { width: 300 },
-                        dropdownItemsWrapper: {
-                            maxHeight: 200,
-                            overflowY: 'auto',
-                        },
-                    }}
-                />
+            <Stack horizontal verticalAlign="end" tokens={{ childrenGap: 12 }} styles={{ root: { flexWrap: 'wrap' } }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
 
-                {/* <ComboBox
-                    label="Available Ingredients"
-                    placeholder="Start typing or select ingredients"
-                    options={ingredientOptions}
-                    multiSelect
-                    allowFreeform={false} // prevents issues when typing unknown values
-                    autoComplete="on"
-                    selectedKeys={selectedIngredients}
-                    useComboBoxAsMenuWidth
-                    onChange={(_, option) => {
-                        if (!option) return;
+                    {selectedIngredients.length > 0 && (
+                        <>
+                        <p> Selected ingredients: </p>
+                        <ul id={selectedListId} className={styles.tagsList} ref={selectedListRef}>
+                            <span id={`${comboId}-remove`} hidden>Remove</span>
+                            {selectedIngredients.map((option, i) => (
+                                <li key={option}>
+                                    <span className={styles.tagPill}>
+                                        {option}
+                                        <button
+                                            onClick={() => onTagClick(option, i)}
+                                            id={`${comboId}-remove-${i}`}
+                                            aria-labelledby={`${comboId}-remove ${comboId}-remove-${i}`}
+                                            className={styles.closeIcon}
+                                        >
+                                            <Dismiss12Regular />
+                                        </button>
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                        </>
+                    )}
 
-                        setSelectedIngredients(prev =>
-                            option.selected
-                                ? [...prev, option.key]
-                                : prev.filter(key => key !== option.key)
-                        );
-                    }}
-                    styles={{
-                        container: { width: 300 },
-                        optionsContainerWrapper: {
-                            maxHeight: 200,
-                            overflowY: 'auto',
-                        },
-                    }}
-                /> */}
+                    <Combobox
+                        aria-labelledby={labelledBy}
+                        multiselect={true}
+                        placeholder="Select ingredients or type them"
+                        selectedOptions={selectedIngredients}
+                        onOptionSelect={onSelect}
+                        ref={comboboxInputRef}
+                        className={styles.comboBox} 
+                    >
+                        {allIngredients.map((option) => (
+                            <Option key={option} className={styles.option}>
+                                {option}
+                            </Option>
+                        ))}
+                    </Combobox>
+                </div>
 
                 <PrimaryButton
                     text="Suggest Dishes"
@@ -188,18 +266,12 @@ const DishSuggester = () => {
                     onClick={() => {
                         setSelectedIngredients([]);
                         setSuggestedDishes([]);
-                        setError(false)
+                        setError(null);
                     }}
                     disabled={selectedIngredients.length === 0}
-                    styles={{
-                        root: {
-                            backgroundColor: '#f3f2f1',
-                            color: '#000',
-                        },
-                    }}
+                    styles={{ root: { backgroundColor: '#f3f2f1', color: '#000' } }}
                 />
             </Stack>
-
 
             {suggestedDishes.length > 0 && (
                 <Stack tokens={{ childrenGap: 12 }}>
@@ -221,7 +293,6 @@ const DishSuggester = () => {
                     {error}
                 </Text>
             )}
-
         </Stack>
     );
 };
