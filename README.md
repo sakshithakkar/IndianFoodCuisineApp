@@ -32,7 +32,7 @@ Built using:
 ---
 
 ## 📁 Project Structure
-
+INDIANFOODCUISINEAPP/
 ├── backend/
 │ ├── controllers/
 │ ├── middlewares/
@@ -118,6 +118,12 @@ CRUD operations for admin users
 Profile management
 
 Internationalization (i18n)
+
+Save Favorite Dishes For Users
+
+Add Dishes by Users 
+
+Like/Comment Feature On Dish 
 
 ### 🧠 Features
 Search dishes by flavor, state, diet
