@@ -30,12 +30,23 @@ const Header = () => {
         setLoading(false);
         return;
       }
+
       setLoading(true);
       try {
         const res = await searchDishes(debouncedQuery);
         setSuggestions(res.data || []);
       } catch (err) {
-        setSuggestions([]);
+        setSuggestions([
+          {
+            id: 'error',
+            name:
+              err.response?.status === 404
+                ? 'No dishes found.'
+                : err.response?.status === 500
+                  ? 'Server error. Please try again later.'
+                  : 'Unable to reach the server. Check your connection.',
+          },
+        ]);
       } finally {
         setLoading(false);
       }
@@ -87,21 +98,26 @@ const Header = () => {
             suggestions.map((s) => (
               <div
                 key={s.id}
-                onClick={() => handleSelect(s.id)}
+                onClick={() => s.id !== 'error' && handleSelect(s.id)}
                 style={{
                   padding: '8px 12px',
-                  cursor: 'pointer',
+                  cursor: s.id === 'error' ? 'default' : 'pointer',
                   fontSize: 15,
-                  color: '#0078d4',
-                  textDecoration: 'underline',
+                  color: s.id === 'error' ? '#a4262c' : '#0078d4',
+                  textDecoration: s.id === 'error' ? 'none' : 'underline',
                   borderBottom: '1px solid #f0f0f0',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = '#f3f2f1')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
+                onMouseEnter={(e) => {
+                  if (s.id !== 'error') e.currentTarget.style.background = '#f3f2f1';
+                }}
+                onMouseLeave={(e) => {
+                  if (s.id !== 'error') e.currentTarget.style.background = 'white';
+                }}
               >
                 {s.name}
               </div>
             ))
+
           )}
         </div>
       )}

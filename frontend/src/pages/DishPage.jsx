@@ -23,22 +23,57 @@ const InfoRow = ({ icon, label, value }) => (
 const DishPage = () => {
   const { id } = useParams();
   const [dish, setDish] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchDish = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const res = await getDishById(id);
-        setDish(res.data.data[0]);
-      } catch (error) {
-        console.error('Error fetching dish:', error);
+        if (res.data?.data?.length === 0) {
+          setError('Dish not found.');
+        } else {
+          setDish(res.data.data);
+        }
+      } catch (err) {
+        if (err.response?.status === 404) {
+          setError('Dish not found.');
+        } else if (err.response?.status === 500) {
+          setError('Server error. Please try again later.');
+        } else {
+          setError('Unable to reach the server. Please check your connection.');
+        }
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchDish();
   }, [id]);
 
 
-  if (!dish) return <Text>Loading...</Text>;
+  if (loading) return <Text>Loading dish details...</Text>;
+  if (error) return (
+    <Stack
+      tokens={{ childrenGap: 12 }}
+      styles={{ root: { padding: 24, textAlign: 'center' } }}
+    >
+      <Icon iconName="ErrorBadge" styles={{ root: { fontSize: 40, color: 'crimson' } }} />
+      <Text variant="large" styles={{ root: { color: 'crimson', fontWeight: 600 } }}>
+        {error}
+      </Text>
+      <DefaultButton
+        text="Go Back"
+        iconProps={{ iconName: 'ChevronLeft' }}
+        onClick={() => navigate(-1)}
+      />
+    </Stack>
+  );
+
 
   const breadcrumbItems = [
     { text: 'Home', key: 'home', onClick: () => navigate('/') },

@@ -18,6 +18,8 @@ const DishSuggester = () => {
 
     const [suggestedDishes, setSuggestedDishes] = useState([]);
     const [allIngredients, setAllIngredients] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchIngredients = async () => {
@@ -37,11 +39,29 @@ const DishSuggester = () => {
     const fetchSuggestions = async () => {
         if (selectedIngredients.length === 0) return;
 
+        setLoading(true);
+        setError(null);
+
         try {
             const data = await suggestDishes(selectedIngredients);
-            setSuggestedDishes(data);
+            if (data.length === 0) {
+                setError('No dishes found.');
+            } else {
+                setSuggestedDishes(data);
+            }
         } catch (err) {
             console.error(err);
+            if (err.response?.status === 404) {
+                console.log(err.response?.status)
+                setError('No dishes found.');
+            } else if (err.response?.status === 500) {
+                setError('Server error. Please try again later.');
+            } else {
+                setError('Could not connect to server. Please check your connection.');
+            }
+            setSuggestedDishes([]);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -168,6 +188,7 @@ const DishSuggester = () => {
                     onClick={() => {
                         setSelectedIngredients([]);
                         setSuggestedDishes([]);
+                        setError(false)
                     }}
                     disabled={selectedIngredients.length === 0}
                     styles={{
@@ -188,6 +209,19 @@ const DishSuggester = () => {
                     <DetailsList items={suggestedDishes} columns={columns} />
                 </Stack>
             )}
+
+            {loading && (
+                <Text variant="medium" styles={{ root: { color: '#0078d4' } }}>
+                    Loading suggestions...
+                </Text>
+            )}
+
+            {error && (
+                <Text variant="medium" styles={{ root: { color: 'crimson' } }}>
+                    {error}
+                </Text>
+            )}
+
         </Stack>
     );
 };

@@ -18,6 +18,8 @@ const DishList = () => {
   const [dishes, setDishes] = useState([]);
   const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
   const [showMessage, setShowMessage] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
   const isFilterActive =
     filter.diet !== '' || search.flavor !== '' || search.state !== '' ||
     page !== 1 || sort.key !== 'name' || sort.order !== 'asc';
@@ -39,6 +41,7 @@ const DishList = () => {
   useEffect(() => {
     const fetchDishes = async () => {
       try {
+        setErrorMsg(''); // Clear previous error
         const finalFilter = {
           diet: filter.diet,
           flavor: debouncedSearch.flavor,
@@ -50,12 +53,27 @@ const DishList = () => {
         setPagination(res.data.pagination);
       } catch (error) {
         console.error('Failed to fetch dishes:', error);
+        if (error.response) {
+          // Server responded with an error status
+          if (error.response.status === 404) {
+            setErrorMsg('No dishes found matching your filters.');
+          } else if (error.response.status === 500) {
+            setErrorMsg('Internal server error. Please try again later.');
+          } else {
+            setErrorMsg(`Error: ${error.response.statusText}`);
+          }
+        } else if (error.request) {
+          // Server is not reachable
+          setErrorMsg('Server is unreachable. Please check your internet or try again later.');
+        } else {
+          // Something else
+          setErrorMsg('Something went wrong. Please try again.');
+        }
       }
     };
 
     fetchDishes();
   }, [filter.diet, debouncedSearch, page, sort]);
-
 
   useEffect(() => {
     localStorage.setItem('dishFilters', JSON.stringify({
@@ -250,6 +268,17 @@ const DishList = () => {
         </Stack>
       </Stack>
 
+      {errorMsg && (
+        <MessageBar
+          messageBarType={3} // Error
+          isMultiline={true}
+          onDismiss={() => setErrorMsg('')}
+          dismissButtonAriaLabel="Close"
+        >
+          {errorMsg}
+        </MessageBar>
+      )}
+
       {/* Dish Table */}
       <Stack
         styles={{
@@ -272,6 +301,12 @@ const DishList = () => {
             }
           }}
         />
+
+        {dishes.length === 0 && (
+          <span style={{ marginTop: 16, fontSize: 16, color: '#605e5c', textAlign: 'center' }}>
+           No dishes found. Try adjusting your filters.
+          </span>
+        )}
       </Stack>
 
       {/* Pagination */}
@@ -319,7 +354,7 @@ const DishList = () => {
             textAlign: 'center',
           }}
         >
-          Page {page} of {pagination.totalPages}
+          Page {pagination.totalPages === 0 ? 0 : page} of {pagination.totalPages}
         </span>
 
         {/* Next Page */}

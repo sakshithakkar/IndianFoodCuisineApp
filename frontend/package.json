@@ -1,7 +1,7 @@
 {
   "name": "frontend",
-  "version": "1.0.2",
-  "versioncomment": "removed unwanted code and made some ui changes",
+  "version": "1.0.3",
+  "versioncomment": "added edge cases for ui",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
