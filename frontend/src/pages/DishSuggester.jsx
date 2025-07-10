@@ -3,14 +3,13 @@ import {
     Stack,
     Dropdown,
     PrimaryButton,
-    CompoundButton,
     DetailsList,
     Text,
-    Icon,
+    ComboBox
 } from '@fluentui/react';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { getAllIngredients } from '../services/ingredientService';
+import { suggestDishes } from '../services/dishService';
 
 const DishSuggester = () => {
     const [selectedIngredients, setSelectedIngredients] = useState(() => {
@@ -21,19 +20,29 @@ const DishSuggester = () => {
     const [allIngredients, setAllIngredients] = useState([]);
 
     useEffect(() => {
-        getAllIngredients().then((res) => setAllIngredients(res.data));
+        const fetchIngredients = async () => {
+            try {
+                const res = await getAllIngredients();
+                setAllIngredients(res.data);
+            } catch (err) {
+                console.error('Failed to fetch ingredients:', err);
+            }
+        };
+
+        fetchIngredients();
     }, []);
 
     const ingredientOptions = allIngredients.map(ing => ({ key: ing, text: ing }));
 
-    const fetchSuggestions = () => {
+    const fetchSuggestions = async () => {
         if (selectedIngredients.length === 0) return;
 
-        axios.post('http://localhost:3001/suggest', {
-            ingredients: selectedIngredients,
-        })
-            .then(res => setSuggestedDishes(res.data))
-            .catch(err => console.error(err));
+        try {
+            const data = await suggestDishes(selectedIngredients);
+            setSuggestedDishes(data);
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     useEffect(() => {
@@ -118,6 +127,33 @@ const DishSuggester = () => {
                         },
                     }}
                 />
+
+                {/* <ComboBox
+                    label="Available Ingredients"
+                    placeholder="Start typing or select ingredients"
+                    options={ingredientOptions}
+                    multiSelect
+                    allowFreeform={false} // prevents issues when typing unknown values
+                    autoComplete="on"
+                    selectedKeys={selectedIngredients}
+                    useComboBoxAsMenuWidth
+                    onChange={(_, option) => {
+                        if (!option) return;
+
+                        setSelectedIngredients(prev =>
+                            option.selected
+                                ? [...prev, option.key]
+                                : prev.filter(key => key !== option.key)
+                        );
+                    }}
+                    styles={{
+                        container: { width: 300 },
+                        optionsContainerWrapper: {
+                            maxHeight: 200,
+                            overflowY: 'auto',
+                        },
+                    }}
+                /> */}
 
                 <PrimaryButton
                     text="Suggest Dishes"

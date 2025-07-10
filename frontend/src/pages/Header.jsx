@@ -1,89 +1,5 @@
-// import { SearchBox } from '@fluentui/react/lib/SearchBox';
-// import { Stack, Text } from '@fluentui/react';
-// import { useState, useEffect, useRef } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import { searchDishes } from '../services/searchService';
-// import { useDebounce } from '../hooks/useDebounce';
-
-// const Header = () => {
-//   const [query, setQuery] = useState('');
-//   const debouncedQuery = useDebounce(query, 500);
-//   const [suggestions, setSuggestions] = useState([]);
-//   const navigate = useNavigate();
-//   const containerRef = useRef(null);
-
-//   useEffect(() => {
-//     const fetchSuggestions = async () => {
-//       if (!debouncedQuery) {
-//         setSuggestions([]);
-//         return;
-//       }
-//       const res = await searchDishes(debouncedQuery);
-//       setSuggestions(res.data || []);
-//     };
-
-//     fetchSuggestions();
-//   }, [debouncedQuery]);
-
-//   const handleSelect = (id) => {
-//     setQuery('');
-//     setSuggestions([]);
-//     navigate(`/dish/${id}`);
-//   };
-
-//   return (
-//     <div style={{ position: 'relative', width: '100%' }} ref={containerRef}>
-//       <SearchBox
-//         placeholder="Search dishes, ingredients, state..."
-//         value={query}
-//         onChange={(_, newValue) => setQuery(newValue)}
-//         styles={{
-//           root: { width: 300 },
-//           field: { fontSize: 15 },
-//         }}
-//       />
-
-//       {suggestions.length > 0 && (
-//         <div
-//           style={{
-//             position: 'absolute',
-//             top: 36,
-//             width: 300,
-//             background: 'white',
-//             border: '1px solid #ddd',
-//             boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-//             borderRadius: 4,
-//             zIndex: 1000,
-//             maxHeight: 200,
-//             overflowY: 'auto',
-//           }}
-//         >
-//           {suggestions.map((s) => (
-//             <div
-//               key={s.id}
-//               onClick={() => handleSelect(s.id)}
-//               style={{
-//                 padding: '8px 12px',
-//                 cursor: 'pointer',
-//                 fontSize: 15,
-//                 borderBottom: '1px solid #f0f0f0',
-//               }}
-//               onMouseEnter={(e) => (e.currentTarget.style.background = '#f3f2f1')}
-//               onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
-//             >
-//               {s.name}
-//             </div>
-//           ))}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default Header;
-
 import { SearchBox } from '@fluentui/react/lib/SearchBox';
-import { Stack, Text, Spinner, SpinnerSize } from '@fluentui/react';
+import { Stack, Spinner, SpinnerSize } from '@fluentui/react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { searchDishes } from '../services/searchService';
@@ -114,8 +30,6 @@ const Header = () => {
         setLoading(false);
         return;
       }
-      // const res = await searchDishes(debouncedQuery);
-      // setSuggestions(res.data);
       setLoading(true);
       try {
         const res = await searchDishes(debouncedQuery);
@@ -149,45 +63,8 @@ const Header = () => {
           }}
         />
       </div>
-{/* 
-      {suggestions.length > 0 && (
-        <div
-          style={{
-            position: 'absolute',
-            top: searchHeight,
-            width: 400,
-            background: 'white',
-            border: '1px solid #ddd',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            borderRadius: 10,
-            zIndex: 1000,
-            maxHeight: 200,
-            overflowY: 'auto',
-          }}
-        >
-          {suggestions.map((s) => (
-            <div
-              key={s.id}
-              onClick={() => handleSelect(s.id)}
-              style={{
-                padding: '8px 12px',
-                cursor: 'pointer',
-                fontSize: 15,
-                color: '#0078d4',
-                textDecoration: 'underline',
-                borderBottom: '1px solid #f0f0f0',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#f3f2f1')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
-            >
-              {s.name}
-            </div>
-          ))}
 
-        </div>
-      )} */}
-
-{(suggestions.length > 0 || loading) && (
+      {(suggestions.length > 0 || loading) && (
         <div
           style={{
             position: 'absolute',

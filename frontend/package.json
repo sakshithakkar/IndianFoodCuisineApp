@@ -1,7 +1,7 @@
 {
   "name": "frontend",
-  "version": "1.0.1",
-  "versioncomment": "changed ui design and added some new components",
+  "version": "1.0.2",
+  "versioncomment": "removed unwanted code and made some ui changes",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

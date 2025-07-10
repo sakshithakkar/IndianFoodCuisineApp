@@ -8,6 +8,7 @@ import {
   Icon
 } from '@fluentui/react';
 import { getDishById } from '../services/dishService';
+import { formatDishValue } from '../utils/formatValue';
 
 const InfoRow = ({ icon, label, value }) => (
   <Stack horizontal verticalAlign="center" tokens={{ childrenGap: 8 }}>
@@ -25,10 +26,17 @@ const DishPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    getDishById(id).then((res) => {
-      setDish(res.data.data[0]);
-    });
+    const fetchDish = async () => {
+      try {
+        const res = await getDishById(id);
+        setDish(res.data.data[0]);
+      } catch (error) {
+        console.error('Error fetching dish:', error);
+      }
+    };
+    fetchDish();
   }, [id]);
+
 
   if (!dish) return <Text>Loading...</Text>;
 
@@ -92,8 +100,6 @@ const DishPage = () => {
 
       <Stack tokens={{ childrenGap: 12 }} styles={{ root: { marginTop: 16 } }}>
         <InfoRow icon="ShoppingCart" label="Ingredients" value={dish.ingredients} />
-        {/* <InfoRow icon="Heart" label="Diet" value={dish.diet} /> */}
-
         <Stack horizontal verticalAlign="center" tokens={{ childrenGap: 8 }}>
           <Icon iconName="Heart" />
           <Text variant="mediumPlus" styles={{ root: { fontWeight: 600 } }}>
@@ -110,13 +116,12 @@ const DishPage = () => {
             {dish.diet}
           </Text>
         </Stack>
-
-        <InfoRow icon="Timer" label="Prep Time" value={`${dish.prep_time} mins`} />
-        <InfoRow icon="SetAction" label="Cook Time" value={`${dish.cook_time} mins`} />
-        <InfoRow icon="ExploreContent" label="Flavor" value={dish.flavor_profile} />
-        <InfoRow icon="GroupedList" label="Course" value={dish.course} />
-        <InfoRow icon="MapPin" label="State" value={dish.state} />
-        <InfoRow icon="Globe" label="Region" value={dish.region} />
+        <InfoRow icon="Timer" label="Prep Time" value={formatDishValue(dish.prep_time, 'mins')} />
+        <InfoRow icon="SetAction" label="Cook Time" value={formatDishValue(dish.cook_time, 'mins')} />
+        <InfoRow icon="ExploreContent" label="Flavor" value={formatDishValue(dish.flavor_profile)} />
+        <InfoRow icon="GroupedList" label="Course" value={formatDishValue(dish.course)} />
+        <InfoRow icon="MapPin" label="State" value={formatDishValue(dish.state)} />
+        <InfoRow icon="Globe" label="Region" value={formatDishValue(dish.region)} />
       </Stack>
 
       <DefaultButton

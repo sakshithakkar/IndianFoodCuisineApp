@@ -1,8 +1,9 @@
-import { DetailsList, Dropdown, TextField, Stack, DefaultButton, Label,MessageBar } from '@fluentui/react';
+import { DetailsList, Dropdown, TextField, Stack, DefaultButton, Label, MessageBar, Icon } from '@fluentui/react';
 import { useEffect, useState } from 'react';
 import { getAllDishes } from '../services/dishService';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDebounce } from '../hooks/useDebounce';
+import { formatDishValue } from '../utils/formatValue';
 
 const DishList = () => {
   const savedFilters = JSON.parse(localStorage.getItem('dishFilters')) || {};
@@ -20,9 +21,8 @@ const DishList = () => {
   const isFilterActive =
     filter.diet !== '' || search.flavor !== '' || search.state !== '' ||
     page !== 1 || sort.key !== 'name' || sort.order !== 'asc';
-  
-    const navigate = useNavigate()
 
+  const navigate = useNavigate()
 
   const handleAddDish = () => {
     const token = localStorage.getItem('authToken');
@@ -37,17 +37,25 @@ const DishList = () => {
   const debouncedSearch = useDebounce(search, 1000);
 
   useEffect(() => {
-    const finalFilter = {
-      diet: filter.diet,
-      flavor: debouncedSearch.flavor,
-      state: debouncedSearch.state,
+    const fetchDishes = async () => {
+      try {
+        const finalFilter = {
+          diet: filter.diet,
+          flavor: debouncedSearch.flavor,
+          state: debouncedSearch.state,
+        };
+
+        const res = await getAllDishes({ ...finalFilter, sort: sort.key, order: sort.order }, page);
+        setDishes(res.data.data);
+        setPagination(res.data.pagination);
+      } catch (error) {
+        console.error('Failed to fetch dishes:', error);
+      }
     };
 
-    getAllDishes({ ...finalFilter, sort: sort.key, order: sort.order }, page).then((res) => {
-      setDishes(res.data.data);
-      setPagination(res.data.pagination);
-    });
+    fetchDishes();
   }, [filter.diet, debouncedSearch, page, sort]);
+
 
   useEffect(() => {
     localStorage.setItem('dishFilters', JSON.stringify({
@@ -74,17 +82,16 @@ const DishList = () => {
     onRender: item => {
       return fieldName === 'name'
         ? <Link to={`/dish/${item.id}`} style={{ color: '#0078d4', textDecoration: 'none' }}>{item.name}</Link>
-        : item[fieldName];
+        : formatDishValue(item[fieldName]);
     },
     onColumnClick,
     isSorted: sort.key === fieldName,
     isSortedDescending: sort.order === 'desc',
   });
 
-
   const columns = [
     getColumn('name', 'name', 'Dish Name'),
-    getColumn('prep_time', 'prep_time', 'Prep Time'),
+    getColumn('prep_time', 'prep_time', 'Prep Time', 90, 120),
     getColumn('cook_time', 'cook_time', 'Cook Time'),
     {
       key: 'diet', name: 'Diet', fieldName: 'diet', minWidth: 80, maxWidth: 150,
@@ -99,10 +106,10 @@ const DishList = () => {
         </span>
       )
     },
-    { key: 'state', name: 'State', fieldName: 'state', minWidth: 80, maxWidth: 150 },
-    { key: 'flavour', name: 'Flavour', fieldName: 'flavor_profile', minWidth: 80, maxWidth: 120 },
+    { key: 'state', name: 'State', fieldName: 'state', minWidth: 80, maxWidth: 150, onRender: item => formatDishValue(item.state) },
+    { key: 'flavour', name: 'Flavour', fieldName: 'flavor_profile', minWidth: 80, maxWidth: 120, onRender: item => formatDishValue(item.flavor_profile) },
     { key: 'course', name: 'Course', fieldName: 'course', minWidth: 80, maxWidth: 120 },
-    { key: 'region', name: 'Region', fieldName: 'region', minWidth: 80, maxWidth: 120 },
+    { key: 'region', name: 'Region', fieldName: 'region', minWidth: 80, maxWidth: 120, onRender: item => formatDishValue(item.region) },
   ];
 
   return (
@@ -268,19 +275,77 @@ const DishList = () => {
       </Stack>
 
       {/* Pagination */}
-      <Stack horizontal tokens={{ childrenGap: 12 }} verticalAlign="center">
+      <Stack
+        horizontal
+        verticalAlign="center"
+        horizontalAlign="center"
+        tokens={{ childrenGap: 8 }}
+        styles={{ root: { marginTop: 24 } }}
+      >
+        {/* First Page */}
         <DefaultButton
-          text="← Previous"
-          disabled={page <= 1}
-          onClick={() => setPage(p => p - 1)}
+          iconProps={{ iconName: 'DoubleChevronLeft' }}
+          text="First"
+          disabled={page === 1}
+          onClick={() => setPage(1)}
+          styles={{
+            root: { padding: '4px 12px', height: 36 },
+            icon: { fontSize: 14 },
+            label: { fontSize: 14 },
+          }}
         />
-        <span style={{ fontWeight: 500, fontSize: 16 }}>
+
+        {/* Previous Page */}
+        <DefaultButton
+          iconProps={{ iconName: 'ChevronLeft' }}
+          text="Previous"
+          disabled={page === 1}
+          onClick={() => setPage(p => p - 1)}
+          styles={{
+            root: { padding: '4px 12px', height: 36 },
+            icon: { fontSize: 14 },
+            label: { fontSize: 14 },
+          }}
+        />
+
+        {/* Page Info */}
+        <span
+          style={{
+            fontWeight: 500,
+            fontSize: 15,
+            padding: '0 12px',
+            color: '#323130',
+            minWidth: 120,
+            textAlign: 'center',
+          }}
+        >
           Page {page} of {pagination.totalPages}
         </span>
+
+        {/* Next Page */}
         <DefaultButton
-          text="Next →"
+          text="Next"
+          iconProps={{ iconName: 'ChevronRight' }}
           disabled={page >= pagination.totalPages}
           onClick={() => setPage(p => p + 1)}
+          styles={{
+            root: { padding: '4px 12px', height: 36 },
+            icon: { fontSize: 14 },
+            label: { fontSize: 14 },
+          }}
+        />
+
+        {/* Last Page */}
+        <DefaultButton
+          text="Last"
+          iconProps={{ iconName: 'DoubleChevronRight' }}
+          disabled={page === pagination.totalPages}
+          onClick={() => setPage(pagination.totalPages)}
+          styles={{
+            root: { padding: '4px 12px', height: 36 },
+            icon: { fontSize: 14 },
+            label: { fontSize: 14 },
+          }}
         />
       </Stack>
     </Stack>
