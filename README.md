@@ -65,6 +65,15 @@ INDIANFOODCUISINEAPP/
 
 ## ⚙️ Environment Setup
 
+### 🗂️ Database Setup
+You can set up the database in two ways:
+
+✅ Option 1: Using Provided SQL Dump
+Import the prebuilt indian_cuisine.sql file from into your MySQL server:
+
+✅ Option 2: Convert from CSV
+Follow instructions in csv_to_sql.sql to convert the given dataset into SQL and populate your database manually.
+
 ### 🔧 Backend (`/backend`)
 
 Create a `.env` file inside `/backend` with:
