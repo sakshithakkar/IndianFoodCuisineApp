@@ -74,7 +74,7 @@ exports.suggestDishes = async (req, res) => {
   const inputIngredients = req.body.ingredients.map(i => i.toLowerCase());
 
   try {
-    const conditions = inputIngredients.map(() => `ingredients LIKE ?`).join(' AND ');
+    const conditions = inputIngredients.map(() => `ingredients LIKE ?`).join(' OR ');
     const values = inputIngredients.map(i => `%${i}%`);
     const query = `SELECT * FROM dishes WHERE ${conditions}`;
 
